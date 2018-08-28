@@ -6,6 +6,7 @@
 
 html {
   font: 16px/1 Arial, sans-serif;
+  overflow-y: scroll;
 }
 
 body {
@@ -23,8 +24,8 @@ ul {
 /* ====== main ====== */
 
 .wrapper {
-  text-align: center;
   margin: 35px 0;
+  text-align: center;
 }
 
 .header {
@@ -38,16 +39,17 @@ ul {
 .main-input {
   height: 60px;
   width: 75%;
+  padding: 0 10px;
+  border: 0;
   background-color: #ccc;
   color: #2aa1c0;
-  border: 1px solid #999;
   font-size: 2em;
-  padding: 0 10px;
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, .5);
   cursor: pointer;
 }
 
 .main-input:focus {
-  border: 1px solid #2aa1c0;
+  box-shadow: inset 0 0 8px rgba(42, 161, 192, 1);
   outline: none;
 }
 
