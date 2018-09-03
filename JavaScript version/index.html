@@ -14,7 +14,19 @@
            placeholder="Write what you need to do"
            onkeyup="createTask(event)"
            autofocus>
-    <ul class="todo-list"></ul>
+    <ul class="todo-list">
+      <li class="bottom-menu">
+        <span class="left-info">
+          <span class="items-count">0</span> items left
+        </span>
+        <ul class="filters">
+          <li class="filter-btn filter-all-btn selected">All</li>
+          <li class="filter-btn filter-active-btn">Active</li>
+          <li class="filter-btn filter-completed-btn">Completed</li>
+        </ul>
+        <div class="clear-completed-btn" onclick="removeCompletedTasks()">Clear completed</div>
+      </li>
+    </ul>
   </div>
   <script src="script.js"></script>
 </body>

@@ -1,5 +1,25 @@
+/* ===== INITIALIZATIONS =====
+         ======================= */
+
+const bottomMenu = document.getElementsByClassName('bottom-menu')[0];
+const todoList = document.getElementsByClassName('todo-list')[0];
+const itemsCount = document.getElementsByClassName('items-count')[0];
+const clearCompletedBtn = document.getElementsByClassName('clear-completed-btn')[0];
+const filterButtons = document.getElementsByClassName('filter-btn');
+const todoInputs = document.getElementsByClassName('todo-input');
+const todoItems = document.getElementsByClassName('todo-item');
+
+let currentFilter = filterButtons[0];
+
+Array.from(filterButtons).forEach(filterButton => {
+  filterButton.addEventListener('click', filterTasks);
+});
+
+
+/* ===== MAIN FUNCTIONS =====
+         ======================= */
+
 function createListItem(taskData) {
-  const ul = document.getElementsByClassName('todo-list')[0];
   const li = document.createElement('li');
   const input = document.createElement('input');
   const label = document.createElement('label');
@@ -23,6 +43,7 @@ function createListItem(taskData) {
   } else {
     label.style.textDecoration = 'none';
     label.style.color = 'initial';
+    itemsCount.textContent = (++itemsCount.textContent).toString();
   }
 
   removeBtn.className = 'todo-remove';
@@ -32,26 +53,18 @@ function createListItem(taskData) {
   li.appendChild(input);
   li.appendChild(label);
   li.appendChild(removeBtn);
-  ul.insertBefore(li, ul.children[0]);
+  todoList.insertBefore(li, todoList.children[0]);
 }
 
-function renderTasks() {
-  const tasks = getDataFromLS();
+function createTask(e) {
+  if (e.key === 'Enter' && e.target.value) {
 
-  tasks.forEach(task => {
-    createListItem(task);
-  });
-}
+    const todoListData = getDataFromLS();
+    let taskId = '';
 
-function createTask(event) {
-  if (event.key === 'Enter' && event.target.value) {
-
-    const data = getDataFromLS();
-    let taskId = 0;
-
-    if (data && data.length) {
-
-      const numbers = data.map(task => {
+    if (todoListData.length) {
+      /* Get the maximum ID and set ID of the new task to maximum ID + 1 */
+      const numbers = todoListData.map(task => {
         return +task.taskId.slice(-1);
       });
 
@@ -62,69 +75,173 @@ function createTask(event) {
 
     const taskData = {
       taskId,
-      labelText: event.target.value,
-      inputChecked: event.target.checked
+      labelText: e.target.value,
+      inputChecked: e.target.checked
     };
+
+    if (!Array.from(todoItems).length) {
+      bottomMenu.style.display = 'flex';
+    }
 
     createListItem(taskData);
     saveDataToLS(taskData);
+    resetFilter();
 
-    event.target.value = '';
+    e.target.value = '';
   }
 }
 
 function doneTask() {
-  const labelStyle = this.nextElementSibling.style;
-  let existTodoList = getDataFromLS();
+  const isThereCheckedInput = Array.from(todoInputs).some(input => {
+    return input.checked;
+  });
 
-  const taskIndexToEdit = existTodoList.findIndex(task => {
+  clearCompletedBtn.style.display = isThereCheckedInput ? 'block' : 'none';
+
+  const labelStyle = this.nextElementSibling.style;
+  let todoListData = getDataFromLS();
+
+  const taskIndexToEdit = todoListData.findIndex(task => {
     return task.taskId === this.id;
   });
 
   if (this.checked) {
     labelStyle.textDecoration = 'line-through';
     labelStyle.color = 'grey';
+    itemsCount.textContent = (--itemsCount.textContent).toString();
   } else {
     labelStyle.textDecoration = 'none';
     labelStyle.color = 'initial';
+    itemsCount.textContent = (++itemsCount.textContent).toString();
   }
 
   this.checked = !!this.checked;
 
-  existTodoList[taskIndexToEdit].inputChecked = this.checked;
-  setDataToLS(existTodoList);
+  todoListData[taskIndexToEdit].inputChecked = this.checked;
+  setDataToLS(todoListData);
+
+  if (currentFilter !== filterButtons[0]) {
+    this.parentElement.style.display = 'none';
+  }
 }
 
-function saveDataToLS(data) {
-  let existTodoList = getDataFromLS();
+function removeTask(e) {
+  const li = e.target.parentElement;
+  todoList.removeChild(li);
 
-  if (existTodoList) {
-    existTodoList.push(data);
-  } else {
-    existTodoList = [data];
+  if (!Array.from(todoItems).length) {
+    bottomMenu.style.display = 'none';
   }
 
-  setDataToLS(existTodoList);
-}
+  if (!li.children[0].checked) {
+    itemsCount.textContent = (--itemsCount.textContent).toString();
+  }
 
-function removeTask() {
-  const li = this.parentElement;
-  li.parentElement.removeChild(li);
-
-  const forAttrValue = this.previousElementSibling.getAttribute('for');
+  const forAttrValue = e.target.previousElementSibling.getAttribute('for');
   removeDataFromLS(forAttrValue);
 }
 
-function removeDataFromLS(taskId) {
-  let existTodoList = getDataFromLS();
-
-  const taskIndexToRemove = existTodoList.findIndex(task => {
-    return task.taskId === taskId;
+function removeCompletedTasks() {
+  Array.from(todoInputs).forEach(input => {
+    if (input.checked) {
+      todoList.removeChild(input.parentElement);
+      removeDataFromLS(input.id);
+    }
   });
 
-  existTodoList.splice(taskIndexToRemove, 1);
-  setDataToLS(existTodoList);
+  if (!Array.from(todoItems).length) {
+    bottomMenu.style.display = 'none';
+  }
+
+  resetFilter();
 }
+
+function renderTasks() {
+  const todoListData = getDataFromLS();
+
+  if (todoListData.length) {
+    todoListData.forEach(todoItem => {
+      createListItem(todoItem);
+    });
+
+    const isThereCheckedInput = todoListData.some(todoItem => {
+      return todoItem.inputChecked;
+    });
+
+    clearCompletedBtn.style.display = isThereCheckedInput ? 'block' : 'none';
+    bottomMenu.style.display = 'flex';
+  }
+}
+
+/* ===== FILTER FUNCTIONS =====
+         ======================= */
+
+function filterTasks(e) {
+  if (currentFilter === e.target) {
+    return;
+  }
+
+  currentFilter.classList.remove('selected');
+  currentFilter = e.target;
+  currentFilter.classList.add('selected');
+
+  switch (e.target.textContent) {
+    case 'Active':
+      filterActiveItems();
+      break;
+    case 'Completed':
+      filterCompletedItems();
+      break;
+    case 'All':
+    case 'default':
+      filterAllItems();
+      break;
+  }
+}
+
+
+function filterActiveItems() {
+  Array.from(todoItems).forEach(item => {
+    if (item.children[0].checked) {
+      item.style.display = 'none';
+    } else {
+      item.style.display = 'flex';
+    }
+  });
+}
+
+function filterAllItems() {
+  Array.from(todoItems).forEach(item => {
+    item.style.display = 'flex';
+  });
+}
+
+function filterCompletedItems() {
+  Array.from(todoItems).forEach(item => {
+    if (!item.children[0].checked) {
+      item.style.display = 'none';
+    } else {
+      item.style.display = 'flex';
+    }
+  });
+}
+
+function resetFilter() {
+  if (currentFilter === filterButtons[0]) {
+    return;
+  }
+
+  filterButtons[0].classList.add('selected');
+  filterButtons[1].classList.remove('selected');
+  filterButtons[2].classList.remove('selected');
+
+  currentFilter = filterButtons[0];
+
+  filterAllItems(Array.from(todoItems));
+}
+
+/* ===== LOCAL STORAGE FUNCTIONS =====
+         ======================= */
 
 function getDataFromLS() {
   return JSON.parse(localStorage.getItem('todoList')) || [];
@@ -132,4 +249,27 @@ function getDataFromLS() {
 
 function setDataToLS(data) {
   localStorage.setItem('todoList', JSON.stringify(data));
+}
+
+function removeDataFromLS(taskId) {
+  let todoList = getDataFromLS();
+
+  const taskIndexToRemove = todoList.findIndex(task => {
+    return task.taskId === taskId;
+  });
+
+  todoList.splice(taskIndexToRemove, 1);
+  setDataToLS(todoList);
+}
+
+function saveDataToLS(data) {
+  let todoListData = getDataFromLS();
+
+  if (todoListData) {
+    todoListData.push(data);
+  } else {
+    todoListData = [data];
+  }
+
+  setDataToLS(todoListData);
 }

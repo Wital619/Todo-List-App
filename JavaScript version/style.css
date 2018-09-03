@@ -127,3 +127,54 @@ ul {
   cursor: pointer;
   user-select: none;
 }
+
+.bottom-menu {
+  position: relative;
+  height: 50px;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #999;
+  border-top: none;
+  color: #333;
+  background-color: #ABB3FF;
+  font-size: 1.15em;
+}
+
+.left-info {
+  position: absolute;
+  left: 15px;
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+}
+
+.filter-btn {
+  margin-right: 25px;
+  padding: 5px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.selected {
+  border: 1px solid #999;
+}
+
+.filter-btn:last-child {
+  margin-right: 0;
+}
+
+.clear-completed-btn {
+  position: absolute;
+  right: 15px;
+  display: none;
+  cursor: pointer;
+}
+
+.clear-completed-btn:hover,
+.filter-btn:hover {
+  color: darkgreen;
+}
