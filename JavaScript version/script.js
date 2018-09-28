@@ -265,7 +265,7 @@ function removeDataFromLS(taskId) {
 function saveDataToLS(data) {
   let todoListData = getDataFromLS();
 
-  if (todoListData) {
+  if (todoListData.length) {
     todoListData.push(data);
   } else {
     todoListData = [data];
